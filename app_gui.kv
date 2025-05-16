@@ -1,0 +1,366 @@
+# app_gui.kv
+# Kivy language file for the application\'s GUI.
+
+#:import Factory kivy.factory.Factory
+#:import Clock kivy.clock.Clock
+
+<ListItemButton@Button>:
+    size_hint_y: None
+    height: "48dp"
+    font_size: "16sp"
+    halign: "left"
+    valign: "middle"
+    text_size: self.width - dp(20), None # For text wrapping
+    padding_x: "10dp"
+
+<SettingsScreen@Screen>:
+    name: "settings"
+    BoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        spacing: "10dp"
+
+        Label:
+            text: "Configurações de API"
+            font_size: "24sp"
+            size_hint_y: None
+            height: "40dp"
+
+        ScrollView:
+            GridLayout:
+                cols: 1
+                spacing: "10dp"
+                size_hint_y: None
+                height: self.minimum_height
+
+                Label:
+                    text: "Azure Token (OpenAI/Summarization)"
+                    halign: "left"
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: "30dp"
+                TextInput:
+                    id: azure_token_input
+                    hint_text: "Cole seu Azure Token aqui"
+                    multiline: False
+                    size_hint_y: None
+                    height: "40dp"
+
+                Label:
+                    text: "LinkedIn Client ID"
+                    halign: "left"
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: "30dp"
+                TextInput:
+                    id: linkedin_client_id_input
+                    hint_text: "Cole seu LinkedIn Client ID"
+                    multiline: False
+                    size_hint_y: None
+                    height: "40dp"
+
+                Label:
+                    text: "LinkedIn Client Secret"
+                    halign: "left"
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: "30dp"
+                TextInput:
+                    id: linkedin_client_secret_input
+                    hint_text: "Cole seu LinkedIn Client Secret"
+                    multiline: False
+                    password: True
+                    size_hint_y: None
+                    height: "40dp"
+                
+                Label:
+                    text: "LinkedIn Access Token (Opcional)"
+                    halign: "left"
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: "30dp"
+                TextInput:
+                    id: linkedin_access_token_input
+                    hint_text: "(Opcional) LinkedIn Access Token"
+                    multiline: False
+                    size_hint_y: None
+                    height: "40dp"
+
+                Label:
+                    text: "LinkedIn Refresh Token"
+                    halign: "left"
+                    text_size: self.width, None
+                    size_hint_y: None
+                    height: "30dp"
+                TextInput:
+                    id: linkedin_refresh_token_input
+                    hint_text: "Cole seu LinkedIn Refresh Token"
+                    multiline: False
+                    size_hint_y: None
+                    height: "40dp"
+
+        BoxLayout:
+            size_hint_y: None
+            height: "50dp"
+            spacing: "10dp"
+            Button:
+                text: "Salvar"
+                on_press: app.save_settings(azure_token_input.text, linkedin_client_id_input.text, linkedin_client_secret_input.text, linkedin_access_token_input.text, linkedin_refresh_token_input.text)
+            Button:
+                text: "Voltar"
+                on_press: app.root.current = "main_screen"
+
+<FeedScreen@Screen>:
+    name: "feeds"
+    BoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        spacing: "10dp"
+        Label:
+            text: "Selecionar Feed RSS"
+            font_size: "24sp"
+            size_hint_y: None
+            height: "40dp"
+        ScrollView:
+            GridLayout:
+                id: feed_list_layout
+                cols: 1
+                spacing: "5dp"
+                size_hint_y: None
+                height: self.minimum_height
+        Button:
+            text: "Voltar ao Início"
+            size_hint_y: None
+            height: "50dp"
+            on_press: app.root.current = "main_screen"
+
+<ArticleListScreen@Screen>:
+    name: "articles"
+    selected_feed_command: ""
+    selected_feed_name: ""
+    BoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        spacing: "10dp"
+        Label:
+            id: article_screen_title
+            text: f"Artigos de: {root.selected_feed_name}"
+            font_size: "24sp"
+            size_hint_y: None
+            height: "40dp"
+        ScrollView:
+            GridLayout:
+                id: article_list_layout
+                cols: 1
+                spacing: "5dp"
+                size_hint_y: None
+                height: self.minimum_height
+        BoxLayout:
+            size_hint_y: None
+            height: "50dp"
+            spacing: "10dp"
+            Button:
+                text: "Voltar para Feeds"
+                on_press: app.root.current = "feeds"
+            Button:
+                text: "Atualizar Artigos"
+                on_press: app.load_articles_for_feed(root.selected_feed_command, root.selected_feed_name, self.parent.parent.ids.article_list_layout, True)
+
+<ArticleDetailScreen@Screen>:
+    name: "article_detail"
+    article_data: None # Will be set by app logic
+    BoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        spacing: "10dp"
+        Label:
+            id: detail_title_label
+            text: "Detalhes do Artigo"
+            font_size: "22sp"
+            size_hint_y: None
+            height: "35dp"
+        ScrollView:
+            GridLayout:
+                cols: 1
+                spacing: "8dp"
+                size_hint_y: None
+                height: self.minimum_height
+                Label:
+                    id: detail_translated_title
+                    text: "Título Traduzido: "
+                    text_size: self.width, None
+                    halign: "left"
+                    valign: "top"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                Label:
+                    id: detail_original_title
+                    text: "Título Original: "
+                    font_size: "12sp"
+                    color: 0.7, 0.7, 0.7, 1
+                    text_size: self.width, None
+                    halign: "left"
+                    valign: "top"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                Label:
+                    id: detail_link
+                    text: "Link: "
+                    text_size: self.width, None
+                    halign: "left"
+                    valign: "top"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                    on_ref_press: app.open_link(self.text.replace("Link: ", ""))
+                    markup: True # To make [ref] clickable
+                Label:
+                    id: detail_published_date
+                    text: "Publicado em: "
+                    text_size: self.width, None
+                    halign: "left"
+                    valign: "top"
+                    size_hint_y: None
+                    height: self.texture_size[1]
+                Label:
+                    text: "Resumo Original (limpo):"
+                    size_hint_y: None
+                    height: "25dp"
+                    halign: "left"
+                ScrollView:
+                    size_hint_y: None
+                    height: "100dp" # Reduced height for original summary
+                    Label:
+                        id: detail_cleaned_summary
+                        text: ""
+                        text_size: self.width, None
+                        halign: "left"
+                        valign: "top"
+                        size_hint_y: None
+                        height: self.texture_size[1]
+        Label:
+            id: generated_summary_label
+            text: "Resumo Gerado/Editável por IA:"
+            size_hint_y: None
+            height: "25dp"
+            halign: "left"
+            opacity: 0 # Hidden initially
+        TextInput:
+            id: generated_summary_text_input # Changed from Label to TextInput
+            text: ""
+            multiline: True
+            size_hint_y: None
+            height: "0dp" # Hidden initially, controlled by opacity and height in main.py
+            opacity: 0
+            hint_text: "Resumo gerado pela IA aparecerá aqui para edição..."
+
+        BoxLayout:
+            size_hint_y: None
+            height: "50dp"
+            spacing: "10dp"
+            Button:
+                id: generate_summary_button
+                text: "Gerar Resumo (IA)"
+                on_press: app.generate_summary_for_article(root.article_data)
+            Button:
+                id: post_linkedin_button
+                text: "Postar no LinkedIn"
+                disabled: True # Enabled after summary generation/editing
+                on_press: app.post_generated_summary_to_linkedin(root.article_data, generated_summary_text_input.text) # Use text_input.text
+        Button:
+            text: "Voltar para Artigos"
+            size_hint_y: None
+            height: "50dp"
+            on_press: app.root.current = "articles"
+
+<ScheduleScreen@Screen>:
+    name: "schedules"
+    BoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        spacing: "10dp"
+        Label:
+            text: "Gerenciamento de Agendamentos"
+            font_size: "24sp"
+            size_hint_y: None
+            height: "40dp"
+        ScrollView:
+            GridLayout:
+                id: schedule_list_layout
+                cols: 1
+                spacing: "5dp"
+                size_hint_y: None
+                height: self.minimum_height
+                # Schedule items will be added here by main.py
+        BoxLayout:
+            size_hint_y: None
+            height: "50dp"
+            spacing: "10dp"
+            Button:
+                text: "Novo Agendamento"
+                on_press: app.open_new_schedule_popup() # To be implemented
+            Button:
+                text: "Atualizar Lista"
+                on_press: app.populate_schedule_list_ui(schedule_list_layout)
+        Button:
+            text: "Voltar ao Início"
+            size_hint_y: None
+            height: "50dp"
+            on_press: app.root.current = "main_screen"
+
+<MainScreen@Screen>:
+    name: "main_screen"
+    BoxLayout:
+        orientation: "vertical"
+        padding: "10dp"
+        spacing: "10dp"
+
+        Label:
+            id: status_label
+            text: "Bem-vindo ao LinkedIn AutoPost App!"
+            size_hint_y: None
+            height: "40dp"
+            font_size: "18sp"
+
+        GridLayout:
+            cols: 2
+            size_hint_y: None
+            height: "120dp"
+            spacing: "10dp"
+            Button:
+                text: "Selecionar Feed"
+                on_press: app.root.current = "feeds"
+            Button:
+                text: "Agendamentos"
+                on_press: app.root.current = "schedules"
+            Button:
+                text: "Testar Backend"
+                on_press: root.test_button_action()
+            Button:
+                text: "Configurações"
+                on_press: app.root.current = "settings"
+
+        ScrollView:
+            Label:
+                id: main_content_label
+                text: "Use os botões acima para navegar."
+                text_size: self.width, None
+                size_hint_y: None
+                height: self.texture_size[1]
+                halign: "center"
+                valign: "middle"
+
+ScreenManager:
+    id: screen_manager
+    MainScreen:
+        id: main_screen_id
+    SettingsScreen:
+        id: settings_screen_id
+    FeedScreen:
+        id: feed_screen_id
+    ArticleListScreen:
+        id: article_list_screen_id
+    ArticleDetailScreen:
+        id: article_detail_screen_id
+    ScheduleScreen:
+        id: schedule_screen_id
+
